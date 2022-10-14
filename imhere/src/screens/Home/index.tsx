@@ -10,11 +10,12 @@ export default function Home() {
   const [ remember , setRemember ] = useState('');
   const [ rememberList , setRememberList ] = useState<string[]>(['Meu primeiro lembrete'])
 
+
   function handleParticipantAdd(){
     
     setRememberList([...rememberList, remember ])
 
-    console.log(rememberList)
+    // console.log(rememberList)
   }
 
   function handleParticipantDelete(rememberToDelete: string) {
