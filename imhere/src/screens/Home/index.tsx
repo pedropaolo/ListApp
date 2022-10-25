@@ -31,7 +31,7 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Lembretes</Text>
+      <Text style={styles.title}>Testando o git</Text>
       <Text style={styles.subtitle}>Coisas que eu não posso esquecer</Text>
 
       <View style={styles.wrap}>
