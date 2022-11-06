@@ -13,27 +13,18 @@ interface IPath {
   color?: string;
 }
 
-interface Cordenates {
-  xCoord: number[];
-  yCoord: number[];
+interface Coordenates {
+  segments: Object[]; 
 }
 
 export default function Draw() {
 
-  // Canva states
-
-  const [paths, setPaths] = useState<IPath[]>([]);
+  // Get Background Image
   const image = require('../../../assets/eu.jpg')
 
-  // Outline detector states
-  const [tGestureStart, setTGestureStart] = useState<undefined | string>();
-  const [tGestureMove, setTGestureMove] = useState<undefined | string>();
-  const [tGestureUpdate, setTGestureUpdate] = useState<undefined | string>();
-  const [tGestureEnd, setTGestureEnd] = useState<undefined | string>();
 
-  const [coordenates, setCoordenates] = useState<{id?: number , xcord: number; ycord: number}[]>([]);
-
-  
+  const [paths, setPaths] = useState<IPath[]>([]);
+  const [coordenates, setCoordenates] = useState<Coordenates[]>([]);
 
   // Draw functionality
   const pan = Gesture.Pan()
@@ -45,61 +36,87 @@ export default function Draw() {
       };
       newPaths[paths.length].segments.push(`M ${g.x} ${g.y}`);
       setPaths(newPaths);
-      setTGestureStart(`${Math.round(g.x)}, ${Math.round(g.y)}`);
-      const newCoordenates = [...coordenates, {xcord: g.x , ycord: g.y }];
+      
+      const newCoordenates = [...coordenates];
+      newCoordenates[coordenates.length] = {
+        segments: []
+      };
+      newCoordenates[paths.length].segments.push({x : g.x , y : g.y });
       setCoordenates(newCoordenates);
-    })
-    .onTouchesMove((g) => {
-   
-      setTGestureMove(
-        `${Math.round(g.changedTouches[0].x)}, ${Math.round(
-          g.changedTouches[0].y
-        )}`
-      );
     })
     .onUpdate((g) => {
       const index = paths.length - 1;
       const newPaths = [...paths];
-      setTGestureUpdate(`${Math.round(g.x)}, ${Math.round(g.y)}`);
       if (newPaths?.[index]?.segments) {
         newPaths[index].segments.push(`L ${g.x} ${g.y}`);
         setPaths(newPaths);
-        const newCoordenates = [...coordenates, {xcord: g.x , ycord: g.y }];
+      }
+      
+      const cordsindex = coordenates.length - 1;
+      const newCoordenates = [...coordenates];
+        
+      if(newCoordenates?.[cordsindex]?.segments) {
+        newCoordenates[cordsindex].segments.push({x : g.x , y : g.y });
         setCoordenates(newCoordenates);
       }
+      
     })
     .onEnd((g) => {
-      setTGestureEnd(`${Math.round(g.x)}, ${Math.round(g.y)}`);
-      console.log("Coordenadas capturadas" , coordenates)
 
       // Gets the first and last points at the coordenates array
-      const lastCord = coordenates.at(-1); 
-      const firstCord = coordenates.at(0);
+      const lastCord = coordenates[0].segments[coordenates[0].segments.length - 1];
+      const firstCord = coordenates[0].segments[0];
+
+      console.log("CORDENADAS:" , coordenates);
+      console.log("PATHS:" , paths)
+      console.log("firstCord:" , firstCord , "lastCord:" , lastCord);
+
 
       // Gets the absolute value of the distance between the x and y coordenates of the points
-      const xdist = Math.abs(lastCord?.xcord - firstCord?.xcord);
-      const ydist = Math.abs(lastCord?.ycord - firstCord?.ycord);
+      const xdist = firstCord.x - lastCord?.x;
+      const ydist = firstCord?.y  - lastCord?.y;
+      
+      const mxdist = Math.abs(xdist);
+      const mydist = Math.abs(ydist);
 
-      //Calculates the distance between the points 
-      const dist = Math.hypot(xdist, ydist);
 
-      if(dist < 50)
+      // //Calculates the distance between the points 
+      const dist = Math.hypot(mxdist, mydist);
+
+      console.log("dist" , dist);
+
+      // Outline autocomplete
+
+      if(dist < 200)
       {
         console.log("OH MYYYYYYYYYYYYYYYYY GODNESSSS")
+        const newPaths = [...paths];
+        const beggining = newPaths[paths.length - 1].segments[1];
+        newPaths[paths.length - 1].segments.push(beggining);
+        setPaths(newPaths);
+        console.log("path atualizado")
+        
       }
+
+      // Erasing bad outlines
+
+      else {
+        alert("Você precisa fechar o contono!");
+        handleErase();
+      }
+
     })
     .minDistance(1);
 
     // Clean Paths state
 
     function handleErase() {
-      
-            console.log("Apapagou?")
-            setPaths([])
+
+            setPaths([]);
+            setCoordenates([]);
             
     }
 
-    // Outline detector functionality
 
     
   return (
@@ -118,12 +135,6 @@ export default function Draw() {
             ))}
           </Canvas>
           <View>
-        <Text
-            style={{ color: "white", fontSize: 24 }}
-          >{`Gesture started at:  ${tGestureStart}`}</Text>
-          <Text
-            style={{ color: "white", fontSize: 24 }}
-          >{`Gesture ended at:  ${tGestureEnd}`}</Text>
         </View>
           <TouchableOpacity onPress={handleErase} style={styles.eraseButton}>
             <Text style={styles.eraseButtonText}>Apagar</Text>
